@@ -39,8 +39,8 @@ class ModelTrainer:
                 test_array[:, -1]
             )
             models = {
-                "Random Forest": RandomForestRegressor(),
-                "Decision Tree": DecisionTreeRegressor(),
+                "Random Forest": RandomForestRegressor(random_state=100),
+                "Decision Tree": DecisionTreeRegressor(random_state=100),
                 # "Gradient Boosting": GradientBoostingRegressor(),
                 # "Linear Regression": LinearRegression(),
                 # "XGBRegressor": XGBRegressor(),
@@ -57,7 +57,7 @@ class ModelTrainer:
                     # 'criterion':['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
 
                     # 'max_features':['sqrt','log2',None],
-                    'n_estimators': [2]#, 16, 32, 64, 128, 256]
+                    'n_estimators': [10]#, 16, 32, 64, 128, 256]
                 },
                 # "Gradient Boosting": {
                 #     # 'loss':['squared_error', 'huber', 'absolute_error', 'quantile'],
@@ -110,7 +110,7 @@ class ModelTrainer:
             predicted = best_model.predict(X_test)
 
             r2_square = r2_score(y_test, predicted)
-            return r2_square
+            return r2_square,best_model_name
 
 
 

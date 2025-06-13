@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, OrdinalEncoder
 
 from src.exception import CustomException
 from src.logger import logging
@@ -31,43 +31,42 @@ class DataTransformation:
         '''
         try:
             numerical_columns = ["writing_score", "reading_score"]
-            categorical_columns = [
-                "gender",
-                "race_ethnicity",
-                "parental_level_of_education",
-                "lunch",
-                "test_preparation_course",
-            ]
+            ord_columns = ["parental_level_of_education", "gender", "lunch", "test_preparation_course"]
+            nom_columns = ["test_preparation_course" ]
+
+            levels = ["some high school", "high school", "some college", "associate's degree",
+                      "bachelor's degree", "master's degree"]
+            gender_values = ["male", "female"]
+            lunch_values = ['free/reduced', 'standard']
+            test_values = ['none', 'completed']
 
             num_pipeline = Pipeline(
                 steps=[
                     ("imputer", SimpleImputer(strategy="median")),
                     ("scaler", StandardScaler())
-
                 ]
             )
 
-            cat_pipeline = Pipeline(
+            ord_pipeline = Pipeline(steps=[
+                ("Imputer", SimpleImputer(strategy="most_frequent")),
+                ("encoder", OrdinalEncoder(categories=[levels, gender_values, lunch_values, test_values]))
+            ])
 
-                steps=[
-                    ("imputer", SimpleImputer(strategy="most_frequent")),
-                    ("one_hot_encoder", OneHotEncoder()),
-                    ("scaler", StandardScaler(with_mean=False))
-                ]
+            nom_pipeline = Pipeline(steps=[
+                ("Imputer", SimpleImputer(strategy="most_frequent")),
+                ("encoder", OneHotEncoder(sparse_output=False))
+            ])
 
-            )
+            logging.info(f"Categorical columns: {numerical_columns}")
+            logging.info(f"Ordinal columns: {ord_columns}")
+            logging.info(f"Nominal: {nom_columns}")
 
-            logging.info(f"Categorical columns: {categorical_columns}")
-            logging.info(f"Numerical columns: {numerical_columns}")
 
-            preprocessor = ColumnTransformer(
-                [
-                    ("num_pipeline", num_pipeline, numerical_columns),
-                    ("cat_pipelines", cat_pipeline, categorical_columns)
-
-                ]
-
-            )
+            preprocessor = ColumnTransformer(transformers=[
+                ("num_feature", num_pipeline, numerical_columns),
+                ("ord_feature", ord_pipeline, ord_columns),
+                ("nom_feature", nom_pipeline, nom_columns)
+            ])
 
             return preprocessor
 
